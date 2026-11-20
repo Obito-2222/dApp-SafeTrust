@@ -11,6 +11,8 @@ type ReservationSummaryProps = {
   description?: string;
   price?: number;
   tax?: number;
+  /** Exact total returned by the API; overrides price + tax when provided. */
+  total?: number;
 };
 
 const styles = {
@@ -32,8 +34,8 @@ const styles = {
 
 function fmt(val?: number) { return val !== undefined ? `$${val.toLocaleString('en-US')}` : '—'; }
 
-export default function ReservationSummary({ checkIn, checkOut, guests, nights, price, tax }: ReservationSummaryProps) {
-  const total = price !== undefined && tax !== undefined ? price + tax : undefined;
+export default function ReservationSummary({ checkIn, checkOut, guests, nights, price, tax, total: totalOverride }: ReservationSummaryProps) {
+  const total = totalOverride ?? (price !== undefined && tax !== undefined ? price + tax : undefined);
 
   return (
     <div style={styles.card}>

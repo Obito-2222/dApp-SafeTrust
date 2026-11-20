@@ -14,7 +14,7 @@ vi.mock('@/core/store/data', () => ({
   },
 }));
 
-import { createHotel, updateHotel, deleteHotel, HotelApiError } from './hotels';
+import { createHotel, updateHotel, deleteHotel, createReservation, HotelApiError } from './hotels';
 
 const fetchMock = vi.fn();
 
@@ -126,6 +126,66 @@ describe('hotels API client', () => {
       expect(apiError.code).toBe('HOTEL_HAS_DEPENDENTS');
       expect(apiError.message).toBe("Remove this hotel's 3 rooms first");
     }
+  });
+
+  it('createReservation sends the guest booking to POST /api/hotel-reservations', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        { reservationId: 'reservation-1', total: 120.5, holdExpiresAt: '2026-12-01T12:30:00.000Z' },
+        201,
+      ),
+    );
+
+    const result = await createReservation({
+      roomId: 'room-uuid-1',
+      checkIn: '2026-12-01',
+      checkOut: '2026-12-03',
+      guests: 2,
+      walletAddress: 'GAB123',
+    });
+
+    expect(result).toEqual({
+      reservationId: 'reservation-1',
+      total: 120.5,
+      holdExpiresAt: '2026-12-01T12:30:00.000Z',
+    });
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit & { headers: Record<string, string> }];
+    expect(url).toContain('/api/hotel-reservations');
+    expect(init.method).toBe('POST');
+    expect(init.headers['X-Tenant-ID']).toBe('hotel_industry');
+    expect(init.headers.Authorization).toBe('Bearer token-hotel-manager');
+    expect(JSON.parse(init.body as string)).toEqual({
+      roomId: 'room-uuid-1',
+      checkIn: '2026-12-01',
+      checkOut: '2026-12-03',
+      guests: 2,
+      walletAddress: 'GAB123',
+    });
+  });
+
+  it('createReservation surfaces a ROOM_UNAVAILABLE conflict', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        {
+          error: 'ROOM_UNAVAILABLE',
+          message: 'Room is unavailable for the selected dates',
+        },
+        409,
+      ),
+    );
+
+    await expect(
+      createReservation({
+        roomId: 'room-uuid-1',
+        checkIn: '2026-12-01',
+        checkOut: '2026-12-03',
+        guests: 1,
+        walletAddress: 'GAB123',
+      }),
+    ).rejects.toMatchObject({
+      status: 409,
+      message: 'Room is unavailable for the selected dates',
+    });
   });
 
   it('throws HotelApiError on 403 Forbidden', async () => {
