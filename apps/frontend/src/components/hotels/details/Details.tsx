@@ -1,10 +1,10 @@
-// apps/frontend/src/components/hotels/details/Details.tsx
 import type { CSSProperties } from 'react';
-import { BedDouble, Bath } from 'lucide-react';
+import { BedDouble, Bath, Users } from 'lucide-react';
 
 type DetailsProps = {
-  beds: number;
-  baths: number;
+  beds?: number;
+  baths?: number;
+  capacity?: number;
   description: string;
 };
 
@@ -20,13 +20,22 @@ const styles = {
   desc: { margin: 0, color: '#6b7280', fontSize: '0.875rem', lineHeight: 1.6 } satisfies CSSProperties,
 } as const;
 
-export default function Details({ beds, baths, description }: DetailsProps) {
+export default function Details({ beds, baths, capacity, description }: DetailsProps) {
   return (
     <div style={styles.wrap}>
-      <div style={styles.pills}>
-        <span style={styles.pill}><BedDouble size={13} strokeWidth={2} />{beds} bd</span>
-        <span style={styles.pill}><Bath size={13} strokeWidth={2} />{baths} ba</span>
-      </div>
+      {(beds !== undefined || baths !== undefined || capacity !== undefined) && (
+        <div style={styles.pills}>
+          {beds !== undefined && (
+            <span style={styles.pill}><BedDouble size={13} strokeWidth={2} />{beds} bd</span>
+          )}
+          {baths !== undefined && (
+            <span style={styles.pill}><Bath size={13} strokeWidth={2} />{baths} ba</span>
+          )}
+          {capacity !== undefined && (
+            <span style={styles.pill}><Users size={13} strokeWidth={2} />Sleeps {capacity}</span>
+          )}
+        </div>
+      )}
       <p style={styles.desc}>{description}</p>
     </div>
   );

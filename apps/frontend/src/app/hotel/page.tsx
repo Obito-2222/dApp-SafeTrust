@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function RemovedHotelRoutePage() {
-  // Legacy public URL kept for bookmarks and shared links.
-  redirect("/rent");
+export default function HotelIndexPage() {
+  // Legacy public URL kept for bookmarks and shared links — hotels only.
+  redirect("/rent?kind=hotel");
 }
